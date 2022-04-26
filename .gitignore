@@ -16,3 +16,6 @@ yarn-error.log
 
 # IDEA Stuff
 .idea
+
+# Buid output
+dist
