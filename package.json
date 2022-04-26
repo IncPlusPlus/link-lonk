@@ -1,6 +1,9 @@
 {
   "name": "link-lonk",
   "packageManager": "yarn@3.2.0",
+  "scripts": {
+    "start": "ts-node src/Bot.ts"
+  },
   "dependencies": {
     "discord.js": "^13.6.0"
   },
