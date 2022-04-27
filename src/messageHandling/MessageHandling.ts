@@ -1,6 +1,6 @@
 import {Client, Message} from "discord.js";
 import {handleYouTubeShorts} from "./handlers/YouTube_Shorts.js";
-import {handleIFunnyVideo} from "./handlers/iFunny_Video.js";
+import {handleIFunnyVideo} from "./handlers/iFunny.js";
 
 export type MessageHandler = (client: Client, message: Message) => boolean;
 
