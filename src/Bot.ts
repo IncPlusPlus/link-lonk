@@ -8,7 +8,12 @@ console.log("Bot is starting...");
 
 const client = new Client({
     intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.DIRECT_MESSAGES, Intents.FLAGS.GUILD_MESSAGES],
-    partials: ['MESSAGE', 'REACTION'],
+    partials: [
+        'MESSAGE',
+        'REACTION',
+        // Required to receive DMs (https://github.com/discordjs/discord.js/issues/5516#issuecomment-985458524)
+        'CHANNEL'
+    ],
 });
 ready(client);
 message(client);
