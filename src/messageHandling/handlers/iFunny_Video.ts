@@ -15,8 +15,12 @@ export const handleIFunnyVideo = (client: Client, message: Message): boolean => 
         .map(iFunnyLink => scrapeIFunny(iFunnyLink))))
         // Then with those details
         .then(linkDetailsList => {
-            // Upload the videos as attachments for the reply we're going to send
-            const files = linkDetailsList.map(value => value.videoUrl).map(videoUrl => new MessageAttachment(videoUrl));
+            // Of the returned video file URLs
+            const files = linkDetailsList.map(value => value.videoUrl)
+                // Filter out any that are empty (meaning there was a problem finding it)
+                .filter(videoUrl => videoUrl.length > 0)
+                // Upload the videos as attachments for the reply we're going to send
+                .map(videoUrl => new MessageAttachment(videoUrl));
             // Reply to the original poster with the MP4 files of the video they linked to
             message.reply({
                 files: files,
@@ -28,13 +32,24 @@ export const handleIFunnyVideo = (client: Client, message: Message): boolean => 
     return true;
 }
 
+/**
+ * Get the URL of an iFunny video. This will return an empty string if there's an error accessing the web page
+ * @param url the URL of the ifunny.co webpage
+ * @return a URL directly to the video file for that page
+ */
 const scrapeIFunny = async (url: string): Promise<{ videoUrl: string }> => {
-    const response = await got(url, {
-        headers: {
-            // We get denied with a 401 if we send no user agent or if it's Postman
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.127 Safari/537.36"
-        }
-    });
+    let response;
+    try {
+        response = await got(url, {
+            headers: {
+                // We get denied with a 401 if we send no user agent or if it's Postman
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.127 Safari/537.36"
+            }
+        });
+    } catch (e) {
+        console.log(`Encountered an error trying to access "${url}". Details: ${e}`);
+        return {videoUrl: ""};
+    }
     const pageBody$ = cheerio.load(response.body);
     // Look for CSS selector for the video pane
     const selector = pageBody$('#App > div.v9ev > div.xbey > div > div > div._3ZEF > div > video');
