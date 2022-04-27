@@ -1,11 +1,10 @@
 {
     "compilerOptions": {
         "target": "ESNext",
-        "module": "commonjs",
+        "module": "NodeNext",
         "rootDir": "./src/",
         "outDir": "./dist/",
         "strict": true,
-        "moduleResolution": "node",
         "importHelpers": false,
         "experimentalDecorators": true,
         "esModuleInterop": true,
@@ -20,6 +19,10 @@
         "sourceMap": false,
         "baseUrl": "./"
     },
+  "ts-node": {
+    // Tell ts-node CLI to install the --loader automatically, explained below
+    "esm": true
+  },
     "files": [
         "src/Bot.ts"
     ],

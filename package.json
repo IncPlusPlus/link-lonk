@@ -1,12 +1,15 @@
 {
   "name": "link-lonk",
-  "packageManager": "yarn@3.2.0",
+  "type": "module",
+  "exports": "./index.js",
   "scripts": {
     "start": "ts-node src/Bot.ts",
     "build": "tsc"
   },
   "dependencies": {
-    "discord.js": "^13.6.0"
+    "cheerio": "^1.0.0-rc.10",
+    "discord.js": "^13.6.0",
+    "got": "^12.0.4"
   },
   "devDependencies": {
     "@types/node": "^17.0.27",
