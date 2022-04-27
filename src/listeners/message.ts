@@ -1,5 +1,5 @@
-import { Client } from "discord.js";
-import {applyMessageHandlers} from "../messageHandling/MessageHandling";
+import {Client} from "discord.js";
+import {applyMessageHandlers} from "../messageHandling/MessageHandling.js";
 
 export default (client: Client): void => {
     client.on("messageCreate", (message) => {
@@ -11,7 +11,5 @@ export default (client: Client): void => {
         if (message.author.bot) return;
 
         applyMessageHandlers(client,message);
-
-        console.log(`Peeked at message ID: ${message.id}`);
     });
 };

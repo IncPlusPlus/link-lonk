@@ -1,6 +1,6 @@
 import {Client, Intents} from "discord.js";
-import ready from "./listeners/ready";
-import message from "./listeners/message";
+import ready from "./listeners/ready.js";
+import message from "./listeners/message.js";
 
 const token = process.env.LINK_LONK_BOT_TOKEN;
 
