@@ -9,6 +9,10 @@ export const handleIFunnyVideo = (client: Client, message: Message): boolean => 
     if (matches.length === 0) {
         return false;
     }
+    let attachmentsShouldBeMarkedAsSpoiler = false;
+    if (message.content.startsWith("Spoiler") || message.content.startsWith("spoiler")) {
+        attachmentsShouldBeMarkedAsSpoiler = true;
+    }
     // For all applicable iFunny links
     (Promise.all(matches.map(match => match[0])
         // Scrape the page for page details including the URL to the video
@@ -16,11 +20,15 @@ export const handleIFunnyVideo = (client: Client, message: Message): boolean => 
         // Then with those details
         .then(linkDetailsList => {
             // Of the returned video file URLs
-            const files = linkDetailsList.map(value => value.videoUrl)
+            const files = linkDetailsList
                 // Filter out any that are empty (meaning there was a problem finding it)
-                .filter(videoUrl => videoUrl.length > 0)
+                .filter(meme => meme.videoUrl.length > 0)
                 // Upload the videos as attachments for the reply we're going to send
-                .map(videoUrl => new MessageAttachment(videoUrl));
+                .map(meme => new MessageAttachment(meme.videoUrl, meme.videoFileName));
+            // Mark the attachments as spoilers if that was requested
+            if (attachmentsShouldBeMarkedAsSpoiler) {
+                files.forEach(attachment => attachment.setSpoiler(true));
+            }
             // Reply to the original poster with the MP4 files of the video they linked to
             message.reply({
                 files: files,
@@ -37,7 +45,7 @@ export const handleIFunnyVideo = (client: Client, message: Message): boolean => 
  * @param url the URL of the ifunny.co webpage
  * @return a URL directly to the video file for that page
  */
-const scrapeIFunny = async (url: string): Promise<{ videoUrl: string }> => {
+const scrapeIFunny = async (url: string): Promise<{ videoUrl: string, videoFileName: string }> => {
     let response;
     try {
         response = await got(url, {
@@ -48,7 +56,7 @@ const scrapeIFunny = async (url: string): Promise<{ videoUrl: string }> => {
         });
     } catch (e) {
         console.log(`Encountered an error trying to access "${url}". Details: ${e}`);
-        return {videoUrl: ""};
+        return {videoUrl: "", videoFileName: "INVALID NAME"};
     }
     const pageBody$ = cheerio.load(response.body);
     // Look for CSS selector for the video pane
@@ -60,7 +68,7 @@ const scrapeIFunny = async (url: string): Promise<{ videoUrl: string }> => {
     const videoUrl = meme.attribs["data-src"];
     // const thumbnailUrl = meme.attribs["data-poster"];
     // const title = pageBody$('#App > div.v9ev > div.xbey > div > div > h1').text();
-    return {videoUrl};
+    return {videoUrl, videoFileName: videoUrl.substring(videoUrl.lastIndexOf("/") + 1)};
 }
 
 // const createEmbedForIFunny=(pageUrl:string,title:string, thumbnailUrl:string, videoUrl:string): MessageEmbed => {
