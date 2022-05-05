@@ -29,6 +29,7 @@ console.log(client);
 
 const handleShutdown = (...args: any[]) => {
     console.log(`link-lonk received ${args[0]}`);
+    console.log('Attempting to destroy client...');
     client.destroy();
     console.log('Client destroyed.');
     process.exit();
@@ -37,4 +38,5 @@ const handleShutdown = (...args: any[]) => {
 // Handle shutdown
 process.on('SIGINT', handleShutdown);
 process.on('SIGTERM', handleShutdown);
-process.on('SIGKILL', handleShutdown);
+// This event isn't registered on Windows and completely crashes if attempting to register on Linux. Guess it's not needed then???
+// process.on('SIGKILL', handleShutdown);
