@@ -33,7 +33,7 @@ const handleShutdown = (...args: any[]) => {
     client.destroy();
     console.log('Client destroyed.');
     process.exit();
-}
+};
 
 // Handle shutdown
 process.on('SIGINT', handleShutdown);
