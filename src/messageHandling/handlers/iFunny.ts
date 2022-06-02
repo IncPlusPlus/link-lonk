@@ -35,17 +35,22 @@ export const handleIFunnyVideo = (client: Client, message: Message): boolean => 
             })
                 .then(() => console.log(`Replied to message "${message.id}" with content "${message.content}".`))
                 .catch((replyFailReason) => {
+                        let explanation = "I'm not quite sure what happened."
                     // Check if this is an error we recognize
                     if (replyFailReason instanceof DiscordAPIError) {
                         // Check if the reason the reply failed is that the file was too large
                         if (replyFailReason.httpStatus === 413) {
                             // Try just linking the file instead of uploading it.
                             console.log(`Failed to reply to message  "${message.id}" with content "${message.content}" because the file(s) were too big. Trying again by just sending the links to the file(s)...`);
-                            let mediaLinks = "Here are the file(s) of the media you linked to as hyperlinks. Seems I couldn't upload them here because they were too big.";
-                            files.forEach(file => mediaLinks += " " + file.attachment);
-                            message.reply(mediaLinks);
+                            explanation = 'Reason being, they were too big!'
                         }
+                    } else if (replyFailReason.name) {
+                        console.log(`Failed to reply to message  "${message.id}" with content "${message.content}". Encountered "${replyFailReason.name}". Trying again by just sending the links to the file(s)...`);
+                        explanation = `Encountered error "${replyFailReason.name}".`
                     }
+                    let mediaLinks = `Here are the file(s) of the media you linked to as hyperlinks. Seems I couldn't upload them myself. ${explanation}`;
+                    files.forEach(file => mediaLinks += " " + file.attachment);
+                    message.reply(mediaLinks);
                 })
                 // Well at least we tried!
                 .catch((secondFailReason) => console.log(`Failed to reply to message "${message.id}" with content "${message.content}". Reason: ${secondFailReason}`));
