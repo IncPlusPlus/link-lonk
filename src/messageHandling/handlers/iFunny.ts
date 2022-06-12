@@ -2,7 +2,7 @@ import {Client, DiscordAPIError, Message, MessageAttachment} from "discord.js";
 import cheerio from 'cheerio';
 import got from 'got';
 
-const iFunnyVideoRegEx = new RegExp('https:\\/\\/ifunny.co\\/(video|picture|gif)\\/\\w+', 'g');
+const iFunnyVideoRegEx = new RegExp('https:\\/\\/ifunny.co\\/(video|picture|gif)\\/[\\w-]+', 'g');
 
 export const handleIFunnyVideo = (client: Client, message: Message): boolean => {
     const matches = [...message.content.matchAll(iFunnyVideoRegEx)];
