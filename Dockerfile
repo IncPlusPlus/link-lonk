@@ -6,6 +6,8 @@ COPY package.json ./
 
 RUN npm i
 
+RUN apt update && apt install ffmpeg -y
+
 COPY . .
 
 FROM base as production
