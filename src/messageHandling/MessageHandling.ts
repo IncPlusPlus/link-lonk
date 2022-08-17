@@ -1,10 +1,14 @@
 import {Client, Message} from "discord.js";
-import {handleYouTubeShorts} from "./handlers/YouTube_Shorts.js";
-import {handleIFunnyVideo} from "./handlers/iFunny.js";
+import {YouTubeShorts} from "./handlers/YouTube_Shorts.js";
+import {iFunny} from "./handlers/iFunny.js";
 
-export type MessageHandler = (client: Client, message: Message) => boolean;
+export interface MessageHandler {
+    canHandle(client: Client, message: Message): boolean;
 
-const messageHandlers: MessageHandler[] = [handleYouTubeShorts, handleIFunnyVideo];
+    handle(client: Client, message: Message): Promise<any>;
+}
+
+const messageHandlers: MessageHandler[] = [new YouTubeShorts(), new iFunny()];
 
 /**
  * Applies all applicable message handlers to the message
@@ -12,8 +16,9 @@ const messageHandlers: MessageHandler[] = [handleYouTubeShorts, handleIFunnyVide
 export const applyMessageHandlers = (client: Client, message: Message) => {
     for (const handler of messageHandlers) {
         // Exhaust the handlers until we find a handler that says it's applicable and has taken action
-        if (handler(client, message)) {
+        if (handler.canHandle(client, message)) {
             console.log(`Replying to message ID: ${message.id}`);
+            handler.handle(client, message).catch(() => `Reply to message ID: ${message.id} failed`);
             break;
         }
     }
