@@ -10,7 +10,7 @@
     "cheerio": "^1.0.0-rc.10",
     "discord.js": "^13.6.0",
     "fluent-ffmpeg": "^2.1.2",
-    "got": "^12.0.4"
+    "got": "^12.5.3"
   },
   "devDependencies": {
     "@types/fluent-ffmpeg": "^2.1.20",
