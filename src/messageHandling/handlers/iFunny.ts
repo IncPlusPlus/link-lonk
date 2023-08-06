@@ -5,8 +5,17 @@ import fluentFfmpeg from 'fluent-ffmpeg';
 import {MessageHandler} from "../MessageHandling.js";
 import {spawn} from "child_process";
 import {unlink} from "fs/promises";
+import Jimp from "jimp";
 
 const {ffprobe} = fluentFfmpeg;
+
+/**
+ * The height of the iFunny watermark. Unfortuantely, due to JPEG compression, artifacts from the watermark will still
+ * show up above the 20 pixel line and bleed over onto the image. The best we can do for now is to remove the bottom
+ * 20 pixels that contain the watermark and hope it's not too noticeable. In the future, this could be improved by
+ * implementing https://github.com/IncPlusPlus/link-lonk/issues/38.
+ */
+const IFUNNY_WATERMARK_HEIGHT_PIXELS = 20;
 
 export class iFunny implements MessageHandler {
     canHandle(client: Client, message: Message): boolean {
@@ -31,6 +40,8 @@ export class iFunny implements MessageHandler {
          See https://www.reddit.com/r/discordapp/comments/oazcgw/psa_you_cannot_embed_mp4_hevc_files_they_have_to/ for more info
         */
         linkDetailsList = await Promise.all(linkDetailsList.map(value => encodeToAVCIfNecessary(value, message.id)));
+        // Crop watermark if necessary
+        linkDetailsList = await Promise.all(linkDetailsList.map(value => cropWatermarkIfNecessary(value,message.id)));
 
         // Of the returned video file URLs
         const files = linkDetailsList
@@ -157,7 +168,7 @@ const getCSSSelectorForIFunny = (mediaType: string): string => {
 }
 
 const encodeToAVCIfNecessary = async (meme: { mediaUrl: string; mediaFileName: string }, sourceMessageId: Snowflake): Promise<{ mediaUrl: string; mediaFileName: string }> => {
-    // Don't touch the attachment unless it's an MP4 which
+    // Don't touch the attachment unless it's an MP4 which may use a codec unsupported by iFunny
     if (!meme.mediaUrl.endsWith(".mp4")) {
         return meme;
     }
@@ -181,6 +192,45 @@ const encodeToAVCIfNecessary = async (meme: { mediaUrl: string; mediaFileName: s
     } else {
         return meme;
     }
+}
+
+const cropWatermarkIfNecessary = async (meme: {
+    mediaUrl: string;
+    mediaFileName: string
+}, sourceMessageId: Snowflake): Promise<{ mediaUrl: string; mediaFileName: string }> => {
+    // Don't touch the attachment unless it's a JPEG which may use a codec unsupported by iFunny
+    // TODO: Might need to catch "jpeg" here too, not just "jpg"
+    if (!meme.mediaUrl.endsWith(".jpg")) {
+        return meme;
+    }
+    return new Promise<{ mediaUrl: string; mediaFileName: string }>(async function (resolve, reject) {
+        Jimp.read(meme.mediaUrl)
+            .then((image) => {
+                const height = image.bitmap.height;
+                const width = image.bitmap.width;
+                image.crop(0, 0, width, height - IFUNNY_WATERMARK_HEIGHT_PIXELS);
+                image.write(meme.mediaFileName, (err, value) => {
+                    if (err) {
+                        console.log("Failed to save '" + meme.mediaFileName + "' from message " + sourceMessageId);
+                        reject(err)
+                    } else {
+                        console.log("Cropped " + meme.mediaFileName)
+                        resolve({mediaUrl: meme.mediaFileName, mediaFileName: meme.mediaFileName});
+                        // Set a timer to delete the file that was created. 5 minutes should be a safe bet for upload time
+                        setTimeout(() => {
+                            unlink(meme.mediaFileName)
+                                .then(() => console.log(`Cleaned up attachment ${meme.mediaFileName} created for message ${sourceMessageId}`))
+                                .catch((reason) => console.log(`Failed to clean up attachment ${meme.mediaFileName} created for message ${sourceMessageId}. Reason: ${reason}`));
+                        }, 300000);
+                    }
+                });
+
+            })
+            .catch((err) => {
+                console.log("Failed to handle '" + meme.mediaFileName + "' from message " + sourceMessageId);
+                reject(err);
+            });
+    });
 }
 
 const getCodec = (filePath: string) => {
