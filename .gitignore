@@ -3,6 +3,7 @@ node_modules
 
 # IDEA Stuff
 .idea
+.run
 
 # Buid output
 dist
