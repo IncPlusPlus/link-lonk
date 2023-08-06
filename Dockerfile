@@ -1,4 +1,4 @@
-FROM node:16 as base
+FROM node:20 as base
 
 WORKDIR /home/node/app
 
@@ -20,7 +20,8 @@ ENV PATH="/home/node/app/node_modules/.bin:$PATH"
 #RUN npm install -D typescript@next
 #RUN npm run build
 
-ENTRYPOINT ["ts-node"]
-CMD ["src/Bot.ts"]
+#ENTRYPOINT ["ts-node"]
+#CMD ["src/Bot.ts"]
 #CMD node -r ts-node/register dist/Bot.js
 #CMD ["node", "dist/Bot.js"]
+CMD ["node", "--loader", "ts-node/esm", "src/Bot.ts"]
