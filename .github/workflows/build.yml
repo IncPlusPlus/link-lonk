@@ -11,5 +11,8 @@ jobs:
       - name: Check out repo
         uses: actions/checkout@v2
 
+      - name: Run NPM install
+        run: npm i
+
       - name: Run NPM build
         run: npm run build
