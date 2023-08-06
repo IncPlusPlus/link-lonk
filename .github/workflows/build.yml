@@ -1,0 +1,13 @@
+name: Build
+on:
+  push:
+  pull_request:
+    types: [synchronize, opened]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run NPM build
+        run: npm run build
+
